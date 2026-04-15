@@ -20,12 +20,15 @@
         /* --- BASE --- */
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-user-drag: none; }
         img { pointer-events: none; }
+        
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg);
             color: var(--text-white);
             overflow-x: hidden;
             line-height: 1.6;
+            /* El scroll se habilita vía JS al terminar la carga */
+            overflow-y: hidden; 
         }
 
         .grid-layer {
@@ -34,20 +37,13 @@
             background-size: 80px 80px; z-index: -1;
         }
 
-        /* --- EFECTO BLUR SUPERIOR --- */
         .top-blur {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 150px;
+            position: fixed; top: 0; left: 0; width: 100%; height: 150px;
             background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
             -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
-            z-index: 999;
-            pointer-events: none;
+            z-index: 999; pointer-events: none;
         }
 
         /* --- LOADING --- */
@@ -81,22 +77,14 @@
             perspective: 1200px;
         }
         .logo-3d-wrapper { 
-            position: relative; 
-            transform-style: preserve-3d; 
-            will-change: transform; 
-            transition: transform 0.1s ease-out;
+            position: relative; transform-style: preserve-3d; will-change: transform; transition: transform 0.1s ease-out;
         }
-        
         .glow-fx {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) translateZ(-50px);
             width: 140%; height: 140%; background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
             filter: blur(80px); z-index: -1;
         }
-        .hero-logo { 
-            width: 700px; max-width: 85vw; 
-            filter: drop-shadow(0 30px 60px rgba(0,0,0,0.9)); 
-            transform: translateZ(50px);
-        }
+        .hero-logo { width: 700px; max-width: 85vw; filter: drop-shadow(0 30px 60px rgba(0,0,0,0.9)); transform: translateZ(50px); }
         
         .btn-play {
             margin-top: 60px; padding: 20px 80px; border: 1px solid var(--border-line);
@@ -108,7 +96,6 @@
 
         /* --- CONTENT --- */
         .container { max-width: 1200px; margin: 0 auto; padding: 150px 6%; }
-        
         .reveal { opacity: 0; transform: translateY(30px); transition: 1s ease-out; }
         .reveal.active { opacity: 1; transform: translateY(0); }
 
@@ -122,10 +109,8 @@
         /* --- SOCIALS --- */
         .social-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1px; background: var(--border-line); border: 1px solid var(--border-line); }
         .social-link { background: var(--bg); padding: 50px; display: flex; flex-direction: column; gap: 25px; transition: 0.4s; text-decoration: none; }
-        .social-link:hover { background: #080808; border-color: #fff; }
+        .social-link:hover { background: #080808; }
         .social-link i { font-size: 30px; color: #fff; }
-        
-        /* FIX: Asegura que el logo de roblox no sea gigante */
         .rbx-icon { width: 32px; height: 32px; object-fit: contain; }
 
         .social-info b { display: block; font-size: 15px; color: #fff; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
@@ -250,25 +235,34 @@
             document.getElementById('footDesc').innerText = t.fDesc;
         }
 
-        // --- INTERFAZ ---
-        window.addEventListener('load', () => {
+        // --- INTERFAZ & CARGA ---
+        const handleLoading = () => {
+            const ls = document.getElementById('loading-screen');
             setTimeout(() => {
-                const ls = document.getElementById('loading-screen');
                 ls.style.opacity = '0';
                 setTimeout(() => {
                     ls.style.display = 'none';
                     document.getElementById('navbar').classList.add('visible');
-                    document.body.style.overflowY = 'auto';
+                    document.body.style.overflowY = 'auto'; // Habilitar scroll
                 }, 1200);
             }, 2000);
-        });
+        };
 
+        // Fallback: Si el evento 'load' tarda demasiado, forzar la carga en 5 segundos
+        window.addEventListener('load', handleLoading);
+        setTimeout(() => {
+            if (document.getElementById('loading-screen').style.display !== 'none') {
+                handleLoading();
+            }
+        }, 5000);
+
+        // --- REVEAL ANIMATION ---
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('active'); });
         }, { threshold: 0.1 });
         document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-        // --- MOTOR 3D ---
+        // --- MOTOR 3D LOGO ---
         const logo = document.getElementById('logo3d');
         let cX = 0, cY = 0, tX = 0, tY = 0;
         
